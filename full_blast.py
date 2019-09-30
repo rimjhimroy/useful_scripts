@@ -42,10 +42,10 @@ elif args.program == "blastn":
     p = subprocess.Popen(cmd, shell=True)
     sts = os.waitpid(p.pid, 0)[1]
 
-pickle.dump(args.blastout, open("save.p1", "wb"))
-blastout = pickle.load(open("save.p1", "rb"))
+pickle.dump(args.blastout, open(os.path.dirname(args.blastout)+"/save.p1", "wb"))
+blastout = pickle.load(open(os.path.dirname(args.blastout)+"/save.p1", "rb"))
 fh = open(blastout)
-outfile = os.path.basename(args.blastout)+".blastout"
+outfile = os.path.dirname(args.blastout)+'/'+os.path.basename(args.blastout)+".blastout"
 outf = open(outfile, "w+")
 for blast_record in parse(fh):
     header = ['querry', 'subject', 'length', 'evalue',
