@@ -19,7 +19,7 @@ parser.add_argument('-length', type=int, metavar='alignment_length',
                     default=80, help='Minimum alignment length cutoff [80]')
 args = parser.parse_args()
 fh = open(args.file)
-outfile = os.path.basename(args.file)+".bastout"
+outfile = os.path.basename(args.file)+".blastout"
 outf = open(outfile, "w+")
 for blast_record in parse(fh):
     header = ['querry', 'subject', 'length', 'evalue',
