@@ -4,7 +4,9 @@ import os
 import sys
 import subprocess
 import argparse
+from Bio import SeqIO
 import pickle
+
 
 print()
 
@@ -27,10 +29,17 @@ parser.add_argument('-length', type=int, metavar='alignment_length',
                     default=80, help='Minimum alignment length cutoff [80]')
 args = parser.parse_args()
 
+# parse fasta
+my_query = SeqIO.index(args.query, "fasta")
+
+my_subject = SeqIO.index(args.subject, "fasta")
+
+# make blast db
 cmd = ('makeblastdb -dbtype nucl -parse_seqids -in '+args.subject)
 p = subprocess.Popen(cmd, shell=True)
 sts = os.waitpid(p.pid, 0)[1]
 
+# run blast
 outname = os.path.basename(args.query)+'_'+os.path.basename(args.subject)
 if not os.path.exists(args.blastout):
     os.mkdir(args.blastout)
@@ -56,20 +65,20 @@ pickle_out1.close()
 blastout = open(args.blastout+"/pickle/save.p1", "rb")
 fh = pickle.load(blastout)
 '''
-
+# Parse and filter blast
 fh = open(outpath)
 outfile = args.blastout+'/' + \
     os.path.basename(outname)+".filtered."+args.program+".out"
 outf = open(outfile, "w+")
 for blast_record in parse(fh):
     header = ['querry', 'subject', 'length', 'evalue',
-              'qstart', 'qend', 'hstart', 'hend', 'perc_identity']
+              'qstart', 'qend', 'hstart', 'hend', 'perc_identity', 'query_len', 'subject_len']
     outf.write('\t'.join(header[0:])+'\n')
     for hit in blast_record.hits:
         for hsp in hit:
             if hsp.evalue < float(args.evalue) and hsp.pident > args.identity and hsp.length > args.length:
                 records = [hsp.qid, hsp.sid, hsp.length, hsp.evalue,
-                           hsp.qstart, hsp.qend, hsp.sstart, hsp.send, hsp.pident]
+                           hsp.qstart, hsp.qend, hsp.sstart, hsp.send, hsp.pident, len(my_query[hsp.qid].seq), len(my_subject[hsp.sid].seq)]
                 outf.write('\t'.join(map(str, records[0:])) + '\n')
 outf.close()
 fh.close()

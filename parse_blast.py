@@ -3,6 +3,7 @@ from blast import parse
 import os
 import sys
 import argparse
+from Bio import SeqIO
 
 print()
 
@@ -17,6 +18,11 @@ parser.add_argument('-identity', type=float, metavar='identity_cutoff',
                     default=80, help='Minimum identity cutoff (integer) [80]')
 parser.add_argument('-length', type=int, metavar='alignment_length',
                     default=80, help='Minimum alignment length cutoff [80]')
+
+#parse fasta
+input_file = open("input.fasta")
+my_dict = SeqIO.to_dict(SeqIO.parse(input_file, "fasta"))
+
 args = parser.parse_args()
 fh = open(args.file)
 outfile = os.path.basename(args.file)+".blastout"

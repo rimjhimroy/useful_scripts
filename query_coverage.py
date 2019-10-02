@@ -4,6 +4,7 @@ import sys
 import re
 import pickle
 import operator
+import argparse
 
 #################################################################
 ###################### SUB PROGRAMS #############################
@@ -12,12 +13,12 @@ import operator
 # Store the coverage
 def store_results_1(data,temp,RL):
 	try:
-		Cov = float(temp[4])/RL[int(temp[0])]
+		Cov = float((int(temp[5])-int(temp[4]))/RL[int(temp[0])])
 	except:
-		Cov = float(temp[4])/RL[str(temp[0])]
+		Cov = float((int(temp[5])-int(temp[4]))/RL[str(temp[0])])
 	
-	if data.has_key(temp[0]):
-		if data[temp[0]].has_key(temp[1]):
+	if temp[0] in data:
+		if temp[1] in data[temp[0]]:
 			data[temp[0]][temp[1]] +=  Cov
 		else:
 			data[temp[0]][temp[1]] =  Cov
@@ -29,43 +30,43 @@ def store_results_1(data,temp,RL):
 
 # Store the Identity
 def store_results_2(data,temp):
-	if data.has_key(temp[0]):
-		if data[temp[0]].has_key(temp[1]):
-			data[temp[0]][temp[1]] +=  float(temp[2])
+	if temp[0] in data:
+		if temp[1] in data[temp[0]]:
+			data[temp[0]][temp[1]] +=  float(temp[8])
 			data[temp[0]][temp[1]] /= 2  
 		else:
-			data[temp[0]][temp[1]] =  float(temp[2])
+			data[temp[0]][temp[1]] =  float(temp[8])
 	else:
 		data[temp[0]] = {}
-		data[temp[0]][temp[1]] =  float(temp[2])
+		data[temp[0]][temp[1]] =  float(temp[8])
 	
 	return data	
 
 def store_results_3(data,temp):
-	if data.has_key(temp[0]):
-		if data[temp[0]].has_key(temp[1]):
-			data[temp[0]][temp[1]].append(str(temp[7]) + "-" + str(temp[8]))  
+	if temp[0] in data:
+		if temp[1] in data[temp[0]]:
+			data[temp[0]][temp[1]].append(str(temp[4]) + "-" + str(temp[5]))  
 		else:
-			data[temp[0]][temp[1]] =  [str(temp[7]) + "-" + str(temp[8])]
+			data[temp[0]][temp[1]] =  [str(temp[4]) + "-" + str(temp[5])]
 	else:
 		data[temp[0]] = {}
-		data[temp[0]][temp[1]] =  [str(temp[7]) + "-" + str(temp[8])]
+		data[temp[0]][temp[1]] =  [str(temp[4]) + "-" + str(temp[5])]
 	
 	return data
 
 def store_identity(Ind_IDN,temp):
-	if int(temp[7]) < int(temp[8]):
-		qrange = temp[7] + "-" + temp[8]
+	if int(temp[4]) < int(temp[5]):
+		qrange = temp[4] + "-" + temp[5]
 	else:
-		qrange = temp[8] + "-" + temp[7]
+		qrange = temp[5] + "-" + temp[4]
 		
-	if Ind_IDN.has_key(temp[0]):
-		if Ind_IDN[temp[0]].has_key(temp[1]):
-			Ind_IDN[temp[0]][temp[1]][qrange] = float(temp[2])
+	if temp[0] in Ind_IDN:
+		if temp[1] in Ind_IDN[temp[0]]:
+			Ind_IDN[temp[0]][temp[1]][qrange] = float(temp[8])
 		else:
-			Ind_IDN[temp[0]][temp[1]] = {qrange: float(temp[2])}
+			Ind_IDN[temp[0]][temp[1]] = {qrange: float(temp[8])}
 	else:
-		Ind_IDN[temp[0]] = {temp[1]: {qrange: float(temp[2])}}
+		Ind_IDN[temp[0]] = {temp[1]: {qrange: float(temp[8])}}
 	
 	return Ind_IDN
 
@@ -77,7 +78,7 @@ def update_coverage(BAC_Range,AID,FID,Fos_Range,HT):
 	OL = 0
 	HITS = []	
 	
-	for i in xrange(len(BAC_Range)):		
+	for i in range(len(BAC_Range)):		
 		temp1 = BAC_Range[i].split("-")
 		
 		###########################################
@@ -85,9 +86,9 @@ def update_coverage(BAC_Range,AID,FID,Fos_Range,HT):
 		###########################################
 		if (int(temp1[1]) - int(temp1[0])) >= HT or int(temp1[0]) - int(temp1[1]) >= HT:
 			if int(temp1[1]) > int(temp1[0]):
-				HITS = HITS + range(int(temp1[0]),int(temp1[1]))
+				HITS = HITS + list(range(int(temp1[0]),int(temp1[1])))
 			else:
-				HITS = HITS + range(int(temp1[1]),int(temp1[0]))
+				HITS = HITS + list(range(int(temp1[1]),int(temp1[0])))
 		
 	HITS1 = list(set(HITS))
 	HITS1.sort()
@@ -97,7 +98,7 @@ def update_coverage(BAC_Range,AID,FID,Fos_Range,HT):
 	# Since the hit size should be >=100bps, some hits may not have any results
 	if l2 > 0:
 		# STORE THE MAPPING RANGE
-		if Fos_Range.has_key(AID):
+		if AID in Fos_Range:
 			Fos_Range[AID][FID] = str(HITS1[0]) + "-" + str(HITS1[-1])
 		else:
 			Fos_Range[AID] = {}
@@ -115,7 +116,7 @@ def update_coverage_Broken_Genes(BAC_Range,Fos_Range,RID,COV1,IDN,HL,Identity,QC
 	for i in BAC_Range:
 		HITS2 =[]
 		if IDN[RID][i] >= Identity:
-			for j in xrange(len(BAC_Range[i])):
+			for j in range(len(BAC_Range[i])):
 				temp1 = BAC_Range[i][j].split("-")
 				
 				if int(temp1[1]) > int(temp1[0]):
@@ -286,6 +287,20 @@ def fix_overlapping_cov_2(COV,RANGE,RL,IDN,Identity,QC,HL,OF2,Ind_IDN):
 ################################################################
 ##################### MAIN PROGRAM #############################
 ################################################################
+print()
+
+# create variables that can be entered as arguments in command line
+parser = argparse.ArgumentParser(
+    description='This script takes a blast output file and Identity cuttoff%, Query coverage%, Minimum hit length in bps,')
+parser.add_argument('-blout', type=str, metavar='blast_output',
+                    required=True, help='REQUIRED: Full path to the blast output file')
+parser.add_argument('-identity', type=float, metavar='identity_cutoff',
+                    default=80, help='Minimum identity cutoff in % (integer) [80]')
+parser.add_argument('-querycov', type=float, metavar='query_coverage_cutoff',
+                    default=20, help='Minimum query coverage cutoff in % (integer) [20]')
+parser.add_argument('-hitlength', type=int, metavar='hit_length',
+                    default=80, help='Minimum hit length cutoff in bps [80]')
+args = parser.parse_args()
 
 # GO TO THE MAIN DATA	
 COV = {}
@@ -316,11 +331,12 @@ OF1.write(txt)
 
 # BLAST OUTPUT FILES
 with open(In_File) as infile:
+	next(infile)
 	for i in infile:
 		temp = i.split()
 		
 		# STORE QUERY LENGTH
-		RL[temp[0]] = int(temp[11].strip())			
+		RL[temp[0]] = int(temp[9].strip())			
 		
 		# Store COV
 		COV = store_results_1(COV,temp,RL)
