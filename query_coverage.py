@@ -1,3 +1,5 @@
+# Adapted  and improved for python3 by Rimjhim Roy Choudhury from https://github.com/jeevka/BLAST_Filter/blob/master/BLAST_Filter_Table.py by Jeevan Karloss
+
 from __future__ import division
 from collections import Counter
 import sys
@@ -9,7 +11,6 @@ import argparse
 from Bio import SeqIO
 
 
-# Adapted  and improved for python3 by Rimjhim Roy Choudhury from https://github.com/jeevka/BLAST_Filter/blob/master/BLAST_Filter_Table.py by Jeevan Karloss
 
 #################################################################
 ###################### SUB PROGRAMS #############################
