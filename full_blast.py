@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-from blast import parse
 import os
 import sys
 import subprocess
 import argparse
-from Bio import SeqIO
 import pickle
 
 
@@ -21,18 +19,13 @@ parser.add_argument('-program', type=str, metavar='blast_program',
                     required=True, help='REQUIRED: blast program to use blastn/megablast')
 parser.add_argument('-blastout', type=str, metavar='blast_output_path',
                     default="./outblast", help='full path to blast output folder to store in -outfmt 6/ -m8 format [./outblast]')
-parser.add_argument('-evalue', type=str, metavar='evalue_cutoff',
-                    default='1e-6', help='Evalue cutoff (string) [1e-6]')
 parser.add_argument('-identity', type=float, metavar='identity_cutoff',
-                    default=80, help='Minimum identity cutoff (integer) [80]')
-parser.add_argument('-length', type=int, metavar='alignment_length',
-                    default=80, help='Minimum alignment length cutoff [80]')
+                    default=80, help='Minimum identity cutoff in % (float) [80]')
+parser.add_argument('-querycov', type=float, metavar='query_coverage_cutoff',
+                    default=20, help='Minimum query coverage cutoff in % (float) [20]')
+parser.add_argument('-hitlength', type=int, metavar='hit_length',
+                    default=80, help='Minimum hit length cutoff in bps [80]')
 args = parser.parse_args()
-
-# parse fasta
-my_query = SeqIO.index(args.query, "fasta")
-
-my_subject = SeqIO.index(args.subject, "fasta")
 
 # make blast db
 cmd = ('makeblastdb -dbtype nucl -parse_seqids -in '+args.subject)
@@ -66,19 +59,8 @@ blastout = open(args.blastout+"/pickle/save.p1", "rb")
 fh = pickle.load(blastout)
 '''
 # Parse and filter blast
-fh = open(outpath)
-outfile = args.blastout+'/' + \
-    os.path.basename(outname)+".filtered."+args.program+".out"
-outf = open(outfile, "w+")
-for blast_record in parse(fh):
-    header = ['querry', 'subject', 'length', 'evalue',
-              'qstart', 'qend', 'hstart', 'hend', 'perc_identity', 'query_len', 'subject_len']
-    outf.write('\t'.join(header[0:])+'\n')
-    for hit in blast_record.hits:
-        for hsp in hit:
-            if hsp.evalue < float(args.evalue) and hsp.pident > args.identity and hsp.length > args.length:
-                records = [hsp.qid, hsp.sid, hsp.length, hsp.evalue,
-                           hsp.qstart, hsp.qend, hsp.sstart, hsp.send, hsp.pident, len(my_query[hsp.qid].seq), len(my_subject[hsp.sid].seq)]
-                outf.write('\t'.join(map(str, records[0:])) + '\n')
-outf.close()
-fh.close()
+
+cmd = ('./query_coverage.py -blout '+outpath+' -query '+args.query+' -cleanout '+args.blastout+' -identity '+args.identity+' -querycov '+args.querycov+' -hitlength '+args.hitlength)
+p = subprocess.Popen(cmd, shell=True)
+sts = os.waitpid(p.pid, 0)[1]
+
