@@ -325,7 +325,7 @@ parser.add_argument('-query', type=str, metavar='blast_query',
 parser.add_argument('-identity', type=float, metavar='identity_cutoff',
                     default=80, help='Minimum identity cutoff in %% (float) [80]')
 parser.add_argument('-querycov', type=float, metavar='query_coverage_cutoff',
-                    default=20, help='Minimum query coverage cutoff in %% (float) [20]')
+                    default=20, help='Minimum query coverage cutoff in % (float) [20]')
 parser.add_argument('-hitlength', type=int, metavar='hit_length',
                     default=80, help='Minimum hit length cutoff in bps [80]')
 args = parser.parse_args()
