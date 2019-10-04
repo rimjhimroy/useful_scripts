@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Adapted  and improved for python3 by Rimjhim Roy Choudhury from https://github.com/jeevka/BLAST_Filter/blob/master/BLAST_Filter_Table.py by Jeevan Karloss
 
 from __future__ import division
@@ -5,7 +7,6 @@ from collections import Counter
 import sys
 import os
 import re
-import pickle
 import operator
 import argparse
 from Bio import SeqIO
@@ -321,8 +322,6 @@ parser.add_argument('-blout', type=str, metavar='blast_output',
                     required=True, help='REQUIRED: Full path to the blast output file')
 parser.add_argument('-query', type=str, metavar='blast_query',
                     required=True, help='REQUIRED: Full path to query file')
-parser.add_argument('-cleanout', type=str, metavar='clean_output_path',
-                    default="./outblast", help='full path to a folder to store the non-overlapping range output [./outblast]')
 parser.add_argument('-identity', type=float, metavar='identity_cutoff',
                     default=80, help='Minimum identity cutoff in % (float) [80]')
 parser.add_argument('-querycov', type=float, metavar='query_coverage_cutoff',
@@ -348,19 +347,17 @@ Hit_Length = args.hitlength
 my_query = SeqIO.index(args.query, "fasta")
 
 # Open result files
-if not os.path.exists(args.cleanout):
-    os.mkdir(args.cleanout)
 
-outfile = args.cleanout+'/' + \
-    os.path.basename(args.blout)+".filtered."+str(args.identity) + \
+
+outfile = os.path.splitext(args.blout)[0]+".filtered."+str(args.identity) + \
     "percIDN.out"
 outf = open(outfile, "w+")
 
-out1name = os.path.basename(args.blout)+".SignificantHits_"+str(args.identity)+"percIDN_"+str(
+out1name = os.path.splitext(args.blout)[0]+".SignificantHits_"+str(args.identity)+"percIDN_"+str(
     args.querycov)+"percQuerycov_min"+str(args.hitlength)+"bpHitLen.txt"
-out2name = os.path.basename(args.blout)+".plotting.txt"
-output_file_1 = args.cleanout+"/"+out1name
-output_file_2 = args.cleanout+"/"+out2name
+out2name = os.path.splitext(args.blout)[0]+".plotting.txt"
+output_file_1 = out1name
+output_file_2 = out2name
 OF1 = open(output_file_1, "w+")
 OF2 = open(output_file_2, "w+")
 
@@ -370,12 +367,12 @@ OF1.write(txt)
 
 # BLAST OUTPUT FILES
 with open(In_File) as infile:
-    header=['querry', 'subject', 'perc_identity','aln_length', 'mismatch', 'gapopen','qstart', 'qend','sstart', 'send', 'evalue', 'bitscore']
+    header=['query', 'subject', 'perc_identity','aln_length', 'mismatch', 'gapopen','qstart', 'qend','sstart', 'send', 'evalue', 'bitscore']
     outf.write('\t'.join(header[0:])+'\n')
     for i in infile:
 	    temp = i.split()
 	    if float(temp[2]) > args.identity:
-		    records = [temp[0], temp[1], temp[2], temp[3], temp[4],temp[5],temp[6], temp[7], temp[8], temp[9], temp[10],temp[11]]
+		    records = temp
 		    outf.write('\t'.join(map(str, records[0:])) + '\n')
 		    
 	    

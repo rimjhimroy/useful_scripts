@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+
+# Writen by Rimjhim Roy Choudhury 
+
 import os
 import sys
 import subprocess
 import argparse
-import pickle
+
 
 
 print()
@@ -25,29 +28,36 @@ parser.add_argument('-querycov', type=float, metavar='query_coverage_cutoff',
                     default=20, help='Minimum query coverage cutoff in % (float) [20]')
 parser.add_argument('-hitlength', type=int, metavar='hit_length',
                     default=80, help='Minimum hit length cutoff in bps [80]')
+parser.add_argument('-num_threads', type=int, metavar='number_of_threads',
+                    default=4, help='Maximum number of threads [4]')
 args = parser.parse_args()
 
 # make blast db
-cmd = ('makeblastdb -dbtype nucl -parse_seqids -in '+args.subject)
-p = subprocess.Popen(cmd, shell=True)
+print ("\n\nCreating BlastDB!!!\n\n")
+cmdDB = ('makeblastdb -dbtype nucl -parse_seqids -in '+args.subject)
+print(cmdDB)
+p = subprocess.Popen(cmdDB, shell=True)
 sts = os.waitpid(p.pid, 0)[1]
 
 # run blast
-outname = os.path.basename(args.query)+'_'+os.path.basename(args.subject)
+print ("\n\nRunning "+args.program+"!!!\n\n")
+outname = os.path.splitext(os.path.basename(args.query))[0]+'_'+os.path.splitext(os.path.basename(args.subject))[0]
 if not os.path.exists(args.blastout):
     os.mkdir(args.blastout)
 if args.program == "megablast":
     outpath = args.blastout+'/'+outname+'.megablast.out'
-    cmd = ('megablast -d '+args.subject+' -i' +
-           args.query+' -m 8 -o '+outpath)
-    p = subprocess.Popen(cmd, shell=True)
-    sts = os.waitpid(p.pid, 0)[1]
+    cmdBlast = ('blastn -task megablast -db '+args.subject+' -query ' +
+           args.query+' -outfmt 6 -out '+outpath+' -num_threads '+str(args.num_threads))
+    print(cmdBlast)
+    p1 = subprocess.Popen(cmdBlast, shell=True)
+    sts = os.waitpid(p1.pid, 0)[1]
 elif args.program == "blastn":
     outpath = args.blastout+'/'+outname+'.blastn.out'
-    cmd = ('blastn -db '+args.subject+' -query ' +
-           args.query+' -outfmt 6 -out '+outpath)
-    p = subprocess.Popen(cmd, shell=True)
-    sts = os.waitpid(p.pid, 0)[1]
+    cmdBlast = ('blastn -task blastn -db '+args.subject+' -query ' +
+           args.query+' -outfmt 6 -out '+outpath+' -num_threads '+str(args.num_threads))
+    print(cmdBlast)
+    p1 = subprocess.Popen(cmdBlast, shell=True)
+    sts = os.waitpid(p1.pid, 0)[1]
 
 '''
 if not os.path.exists(args.blastout+"/pickle"):
@@ -59,8 +69,9 @@ blastout = open(args.blastout+"/pickle/save.p1", "rb")
 fh = pickle.load(blastout)
 '''
 # Parse and filter blast
-
-cmd = ('./query_coverage.py -blout '+outpath+' -query '+args.query+' -cleanout '+args.blastout+' -identity '+args.identity+' -querycov '+args.querycov+' -hitlength '+args.hitlength)
-p = subprocess.Popen(cmd, shell=True)
-sts = os.waitpid(p.pid, 0)[1]
+print ("\n\nFiltering Blast Results!!!\n\n")
+cmdFilter = ('./query_coverage.py -blout '+outpath+' -query '+args.query+' -identity '+str(args.identity)+' -querycov '+str(args.querycov)+' -hitlength '+str(args.hitlength))
+print(cmdFilter)
+p2 = subprocess.Popen(cmdFilter, shell=True)
+sts = os.waitpid(p2.pid, 0)[1]
 
