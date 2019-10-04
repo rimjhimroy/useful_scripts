@@ -70,7 +70,7 @@ fh = pickle.load(blastout)
 '''
 # Parse and filter blast
 print ("\n\nFiltering Blast Results!!!\n\n")
-cmdFilter = ('./query_coverage.py -blout '+outpath+' -query '+args.query+' -identity '+str(args.identity)+' -querycov '+str(args.querycov)+' -hitlength '+str(args.hitlength))
+cmdFilter = ('query_coverage.py -blout '+outpath+' -query '+args.query+' -identity '+str(args.identity)+' -querycov '+str(args.querycov)+' -hitlength '+str(args.hitlength))
 print(cmdFilter)
 p2 = subprocess.Popen(cmdFilter, shell=True)
 sts = os.waitpid(p2.pid, 0)[1]
