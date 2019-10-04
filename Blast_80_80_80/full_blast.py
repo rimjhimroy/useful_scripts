@@ -18,7 +18,7 @@ print()
 
 
 # create variables that can be entered as arguments in command line
-parser = argparse.ArgumentParser(description="This script takes a query and a database file for blastn/megablast and parses it")
+parser = MyParser(argparse.ArgumentParser(description="This script takes a query and a database file for blastn/megablast and parses it"))
 parser.add_argument("-q","--query", type=str, metavar='blast_query', required=True, help="REQUIRED: Full path to query file")
 parser.add_argument("-s",'--subject', type=str, metavar='blast_subject',required=True, help='REQUIRED: Full path to subject file')
 parser.add_argument("-p",'--program', type=str, metavar='blast_program',required=True, help='REQUIRED: blast program to use blastn/megablast')
@@ -68,7 +68,7 @@ fh = pickle.load(blastout)
 '''
 # Parse and filter blast
 print ("\n\nFiltering Blast Results!!!\n\n")
-cmdFilter = ('query_coverage.py -blout '+outpath+' -query '+args.query+' -identity '+str(args.identity)+' -querycov '+str(args.querycov)+' -hitlength '+str(args.querycov))
+cmdFilter = ('./query_coverage.py -blout '+outpath+' -query '+args.query+' -identity '+str(args.identity)+' -querycov '+str(args.querycov)+' -hitlength '+str(args.querycov))
 print(cmdFilter)
 p2 = subprocess.Popen(cmdFilter, shell=True)
 sts = os.waitpid(p2.pid, 0)[1]
